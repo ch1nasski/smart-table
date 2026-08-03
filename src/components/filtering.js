@@ -1,5 +1,20 @@
 import {createComparison, defaultRules} from "../lib/compare.js";
 
+function normalizeState(state) {
+    const nextState = {...state};
+    const fromValue = state.totalFrom;
+    const toValue = state.totalTo;
+
+    if (fromValue !== undefined || toValue !== undefined) {
+        nextState.total = [
+            fromValue === '' || fromValue === undefined || fromValue === null ? undefined : Number(fromValue),
+            toValue === '' || toValue === undefined || toValue === null ? undefined : Number(toValue)
+        ];
+    }
+
+    return nextState;
+}
+
 export function initFiltering(elements, indexes) {
     const compare = createComparison(defaultRules);
 
@@ -33,6 +48,6 @@ export function initFiltering(elements, indexes) {
             }
         }
 
-        return data.filter(row => compare(row, state));
+        return data.filter(row => compare(row, normalizeState(state)));
     }
 }
