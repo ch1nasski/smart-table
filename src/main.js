@@ -1,8 +1,6 @@
 import './fonts/ys-display/fonts.css'
 import './style.css'
 
-import {data as sourceData} from "./data/dataset_1.js";
-
 import {initData} from "./data.js";
 import {processFormData} from "./lib/utils.js";
 
@@ -12,7 +10,7 @@ import {initSorting} from "./components/sorting.js";
 import {initFiltering} from "./components/filtering.js";
 import {initSearching} from "./components/searching.js";
 
-const api = initData(sourceData);
+const api = initData();
 
 /**
  * Сбор и обработка полей из таблицы
@@ -43,10 +41,40 @@ async function render(action) {
     query = applySorting(query, state, action);
     query = applyPagination(query, state, action);
 
-    const { total, items } = await api.getRecords(query);
+    const hasTotalRange = state.totalFrom || state.totalTo;
+    const requestQuery = hasTotalRange ? {...query, limit: 1000} : query;
+    const { total, items } = await api.getRecords(requestQuery);
 
-    updatePagination(total, query);
-    sampleTable.render(items);
+    let filteredItems = [...items];
+
+    if (hasTotalRange) {
+        const totalFrom = state.totalFrom !== '' ? Number(state.totalFrom) : null;
+        const totalTo = state.totalTo !== '' ? Number(state.totalTo) : null;
+
+        filteredItems = filteredItems.filter(item => {
+            const value = Number(item.total);
+
+            if (totalFrom !== null && value < totalFrom) {
+                return false;
+            }
+
+            if (totalTo !== null && value > totalTo) {
+                return false;
+            }
+
+            return true;
+        });
+    }
+
+    const rowsPerPage = Number(state.rowsPerPage) || 10;
+    const totalRows = hasTotalRange ? filteredItems.length : total;
+    const page = Math.max(1, Number(state.page) || 1);
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    const pageItems = hasTotalRange ? filteredItems.slice(start, end) : items;
+
+    updatePagination(totalRows, { page, limit: rowsPerPage });
+    sampleTable.render(pageItems);
 }
 
 const sampleTable = initTable({

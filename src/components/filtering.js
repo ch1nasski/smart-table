@@ -43,6 +43,10 @@ export function initFiltering(elements) {
                 return;
             }
 
+            if (['totalFrom', 'totalTo'].includes(element.name)) {
+                return;
+            }
+
             if (['INPUT', 'SELECT'].includes(element.tagName) && element.value) {
                 filter[`filter[${element.name}]`] = element.value;
             }

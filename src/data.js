@@ -1,8 +1,6 @@
-import {makeIndex} from "./lib/utils.js";
-
 const BASE_URL = 'https://webinars.webdev.education-services.ru/sp7-api';
 
-export function initData(sourceData) {
+export function initData() {
     let sellers;
     let customers;
     let lastResult;
